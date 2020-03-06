@@ -2,9 +2,10 @@ package fr.arthurbambou.fblink;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import fr.arthurbambou.fblink.discordstuff.DiscordBot;
+import discord.DiscordBot;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,23 +20,28 @@ public class FBLink implements DedicatedServerModInitializer {
 
 	private static ConfigManager configManager;
 	private static DiscordBot discordBot;
-	public static Logger LOGGER = LogManager.getLogger("FBlink");
+	private static MinecraftServer server;
 
 	@Override
 	public void onInitializeServer() {
 		configManager = new ConfigManager();
-		discordBot = new DiscordBot(configManager.init(), configManager.config);
+		discordBot = new DiscordBot(configManager.init(), configManager.config, server);
+		discordBot.onServerStartup();
 		configManager.config.token = "";
 	}
 
 	public static void regenConfig() {
 		configManager.regenConfig();
-		discordBot = new DiscordBot(configManager.init(), configManager.config);
+		discordBot = new DiscordBot(configManager.init(), configManager.config, server);
 		configManager.config.token = "";
 	}
 
 	public static DiscordBot getDiscordBot() {
 		return discordBot;
+	}
+
+	public static void onStartup(MinecraftServer srv) {
+		server = srv;
 	}
 
 	protected class ConfigManager {
@@ -44,14 +50,14 @@ public class FBLink implements DedicatedServerModInitializer {
 		private final Gson DEFAULT_GSON = new GsonBuilder().setPrettyPrinting().create();
 
 		private File configFile;
-		private String configFilename = "fblink";
 		private Gson gson = DEFAULT_GSON;
 		private Config DefaultConfig = new Config();
 
 		private Config config;
 
 		protected String init() {
-			configFile = new File(CONFIG_PATH, configFilename + (configFilename.endsWith(".json") ? "" : ".json"));
+			String configFilename = "fblink";
+			configFile = new File(CONFIG_PATH, configFilename + ".json");
 			if (!configFile.exists()) {
 				return saveConfig(DefaultConfig);
 			}

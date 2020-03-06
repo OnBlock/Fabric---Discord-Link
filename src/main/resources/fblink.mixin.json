@@ -3,7 +3,8 @@
   "package": "fr.arthurbambou.fblink.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MixinMinecraftServer"
+    "MixinMinecraftServer",
+    "MixinServerCommandOutput"
   ],
   "injectors": {
     "defaultRequire": 1
